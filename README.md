@@ -1,4 +1,4 @@
-# OpenPrinting cups-filters Ansible Playbook Remidiation
+# OpenPrinting cups-filters Ansible Playbook Remediation
 
 Based off the steps outlined in [RHSB-2024-002](https://access.redhat.com/security/vulnerabilities/RHSB-2024-002), this playbook checks if the system you are running this against has the prerequisites for the exploit to work, and then runs either an HA or non-HA mitigation based on your server scenarios.
 
