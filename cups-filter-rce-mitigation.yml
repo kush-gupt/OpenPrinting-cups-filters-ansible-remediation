@@ -4,8 +4,7 @@
   hosts: all
   tasks:
     - name: Ensure the cups-browsed service is inactive
-      ansible.builtin.command:
-        command: systemctl status cups-browsed
+      ansible.builtin.command: systemctl status cups-browsed
       register: cups_browsed_status
       changed_when: false
 
