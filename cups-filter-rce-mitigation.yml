@@ -1,0 +1,41 @@
+---
+# All steps based on https://access.redhat.com/security/vulnerabilities/RHSB-2024-002
+- name: OpenPrinting cups-filters RCE mitigation based on RHSB-2024-002
+  hosts: all
+  tasks:
+    - name: Ensure the cups-browsed service is inactive
+      ansible.builtin.command:
+        command: systemctl status cups-browsed
+      register: cups_browsed_status
+      changed_when: false
+
+    - name: Assert if prerequisites for the exploit to work are fulfilled to decide further mitigation
+      ansible.builtin.assert:
+        that: "'Active: inactive (dead)' not in cups_browsed_status.stdout"
+        fail_msg: "The prerequisites for the exploit to work are not fulfilled on this system, thereby rendering the exploit useless! You are okay"
+        success_msg: "We need to apply some mitigation steps my friend"
+
+    - name: Mitigate HA Scenario by setting the BrowseRemoteProtocols directive values from default dnssd cups to none
+      ansible.builtin.lineinfile:
+        path: /etc/cups/cups-browsed.conf
+        regexp: '^BrowseRemoteProtocols'
+        line: BrowseRemoteProtocols none
+      notify:
+        - Restart cups-browsed
+      tags:
+        - HA
+        - never
+
+    - name: Mitigate Non-HA Scenario by stopping & disabling cups-browsed
+      ansible.builtin.systemd_service:
+        name: cups-browsed
+        state: stopped
+        enabled: false
+      tags:
+        - non-HA
+
+  handlers:
+    - name: Restart cups-browsed
+      ansible.builtin.systemd_service:
+        name: cups-browsed
+        state: restarted
